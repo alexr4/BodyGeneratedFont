@@ -17,6 +17,7 @@ const Grid                  = new LandmarkGrid(LandmarkContainer, {
     centered: true,
   });
 
+//#region HelloWorld
 function onResults(result){
     if(!result.poseLandmarks){
         Grid.updateLandmarks([]);
@@ -40,6 +41,7 @@ function onResults(result){
         {list: Object.values(POSE_LANDMARKS_RIGHT), color: 'RIGHT'},
       ]);
 }
+//#endregion
 
 const pose  = new Pose({locateFile: (file) => {
     return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;

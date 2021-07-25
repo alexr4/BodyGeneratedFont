@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Body Generated Font</title>
+    <link rel="stylesheet" type="text/css" href="../g-css/reset.css" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="css/style.css" crossorigin="anonymous">
+    <!--Mediapipe load-->
+    
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils_3d@0.2/landmark_grid.css" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils@0.5/control_utils.css" crossorigin="anonymous">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1620247984/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils_3d@0.2.1625245254/control_utils_3d.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils@0.6.1626288889/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1620248257/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.4.1624666670/pose.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container">
+        <img class="input" src="../g-assets/dancer.jpg">
+        <canvas class="output" width="640px"0 height="426px"></canvas>
+        <div class="landmark-grid-container"></div>
+    </div>
+    <script src="./posedetection_tester.js"></script>
+</body>
+</html>

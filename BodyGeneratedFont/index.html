@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Body Generated font</title>
+    
+    <link rel="stylesheet" type="text/css" href="./css/reset.css" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="./css/style.css" crossorigin="anonymous">
+
+    <!-- JQYERY-->
+    <script type="text/javascript" src="js/jquery.js"></script>
+
+    <!--P5JS Load-->
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.2.0/lib/p5.min.js"></script>
+
+    <!--MediaPipe Load-->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils_3d@0.2/landmark_grid.css" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils@0.5/control_utils.css" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1620247984/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils_3d@0.2.1625245254/control_utils_3d.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils@0.6.1626288889/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1620248257/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.4.1624666670/pose.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="output" id="output">
+            
+    </div>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col" id="main-controls">
+                <div class="row gy-2">
+                    <div id="file-selector">
+                        <label for="formFile" class="form-label">Sélectionner une vidéo à analyser</label>
+                        <input class="form-control" type="file" id="upload">
+                    </div>
+                    <div>
+                        <input class="form-control" type="text" id="TextToGenerate" placeholder="Texte à générer" aria-label="Texte à générer">
+                    </div>
+                </div>
+                <div class="row gy-2 tools">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="displayVideoOnCanvas">
+                        <label class="form-check-label" for="displayVideoOnCanvas">Afficher la vidéo dans le canvas</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="displayBonesOnCanvas" checked>
+                        <label class="form-check-label" for="displayBonesOnCanvas">Afficher le squelette dans le canvas</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="CenterBonesOnCanvas">
+                        <label class="form-check-label" for="CenterBonesOnCanvas">Garder le corps au centre du canvas</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="ShowFPS">
+                        <label class="form-check-label" for="ShowFPS">Afficher le frame rate</label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6" id="empty"></div>
+            <div class="col" id="main-debug">
+                <div class="landmark-grid-container"></div>
+            </div>
+        </div>
+    </div>
+    <script src="./js/poseEstimation.js"></script>
+</body>
+</html>

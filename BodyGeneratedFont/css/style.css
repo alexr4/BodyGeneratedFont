@@ -1,0 +1,26 @@
+body{
+    background-color: rgb(37, 37, 37);
+    color: whitesmoke;
+    margin: 0;
+}
+
+.output{
+    position: absolute;
+}
+
+canvas {
+    display: block;
+}
+
+.container-fluid{
+    position: absolute;
+    padding: 50px;
+}
+
+.tools{
+    margin-top: 50px;
+}
+
+.form-switch{
+    padding-left: 3.5em;;
+}
