@@ -20,9 +20,10 @@ const FontGenerator = (p5) => {
     let  textBBox;
     let  fontSize = 200;
     let  txtPoints;
+    let  particles = [];
     let  isTxtSet = false;
     let  txtSampleFactor = 0.25;
-    let  txtSimplifyThreshold = 0;
+    let  txtSimplifyThreshold = 0.;
 
     //loading time;
     let maxTimeLoadingAnim = 1500;
@@ -101,26 +102,20 @@ const FontGenerator = (p5) => {
             p5.DebugView();
 
             if(isTxtSet){
-                // p5.noFill();
-                // p5.stroke(255, 0, 0);
-                // p5.rect(textBBox.x, textBBox.y, textBBox.w, textBBox.h);
+                p5.computeParticleText(10);
+
                 p5.noStroke();
-                p5.fill(255);
+                p5.fill(255, 0, 0, 20);
                 for(let i=0; i<txtPoints.length; i++){
                     let p = txtPoints[i];
                     p5.ellipse(p.x - textBBox.w * .5, p.y + textBBox.h * .5, 4, 4);
                 }
-                
-                // p5.noFill();
-                // p5.fill(255, 20);
-                // p5.stroke(255);
-                // p5.strokeWeight(1);
-                // p5.beginShape();
-                // for(let i=0; i<txtPoints.length; i++){
-                //     let p = txtPoints[i];
-                //     p5.vertex(p.x - textBBox.w * .5, p.y + textBBox.h * .5);
-                // }
-                // p5.endShape(p5.CLOSE);
+
+                p5.fill(255);
+                for(let i=0; i<particles.length; i++){
+                    let particle = particles[i];
+                    particle.display();
+                }
             }
         }
     }
@@ -225,6 +220,19 @@ const FontGenerator = (p5) => {
             poses[i].y  = bone.y - gravityPoint.y + p5.height * 0.5;
         }
     }
+
+    p5.getBonePositionAndVelocity = (index) =>{
+        let bone        = poses[index];
+        let position    = p5.createVector(bone.x, bone.y);
+
+        //display vel
+        let lastBone        = lastposes[index];
+        let lastBonePose    = p5.createVector(lastBone.x, lastBone.y);
+
+        let velocity        = lastBonePose.copy().sub(position);
+        
+        return {position, velocity};
+    }
     //#endregion
 
     //#region text related computations
@@ -244,6 +252,36 @@ const FontGenerator = (p5) => {
             simplifyThreshold: txtSimplifyThreshold
           });
         p5.pop();
+    }
+
+    p5.computeParticleText = (minDist) => {
+        //friction
+        let coef = 0.1;
+        let normal = 1;
+        let frictionMag = coef * normal;
+        
+        for(let i=0; i<particles.length; i++){
+            let particle = particles[i];
+            
+            for(let j=0; j<poses.length; j++){
+                let bone    = p5.getBonePositionAndVelocity(j);
+
+                let toBone  = particle.position.copy().sub(bone.position);
+                if(toBone.mag() <= minDist){
+                    let newVel = toBone.normalize().mult(bone.velocity.mag());
+                    particle.applyForce(newVel);
+                }
+            }
+
+            let friction = particle.velocity.copy();
+            friction.mult(-1);
+            friction.normalize();
+            friction.mult(frictionMag);
+            particle.applyForce(friction);
+
+            particle.update();
+            particle.dampVelocity();
+        }
     }
     //#endregion
 
@@ -306,11 +344,57 @@ const FontGenerator = (p5) => {
         if(text.length > 0){
             p5.computeTextBoundingBox();
             p5.computeTextToPoints();
+
+            particles = [];
+            for(let i=0; i<txtPoints.length; i++){
+                let pt  = txtPoints[i];
+                let x   = pt.x - textBBox.w * .5;
+                let y   = pt.y + textBBox.h * .5;
+                particles.push(new Particle(p5, x, y));
+            }
+    
             isTxtSet = true;
         }else{
             isTxtSet = false;
         }
     }
     //#endregion
+}
+//#endregion
+
+//#region particle class
+class Particle{
+    constructor(p5, x, y){
+        this.p5ctx          = p5;         
+        this.position       = this.p5ctx.createVector(x, y);
+        this.velocity       = this.p5ctx.createVector(0, 0);
+        this.acceleration   = this.p5ctx.createVector(0, 0);
+
+        this.maxForce       = 0.25;
+        this.maxSpeed       = 3.0;
+        this.radius         = 2;
+    }
+
+    applyForce(force){
+        //mass could be add using A = F/M
+        this.acceleration.add(force);
+    }
+
+    dampVelocity(){
+        if(this.velocity.mag() <= 0.01){
+            this.velocity.mult(0);
+        }
+    }
+
+    update(){
+        this.velocity.add(this.acceleration);
+        this.velocity.limit(this.maxSpeed);
+        this.position.add(this.velocity);
+        this.acceleration.mult(0);
+    }
+
+    display(){
+        this.p5ctx.ellipse(this.position.x, this.position.y, 2, 2);
+    }
 }
 //#endregion
