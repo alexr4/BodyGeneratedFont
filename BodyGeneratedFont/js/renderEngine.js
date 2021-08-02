@@ -24,8 +24,14 @@ const FontGenerator = (p5) => {
     let txtVert = [];
     let particles = [];
     let isTxtSet = false;
-    let txtSampleFactor = 0.5;
-    let txtSimplifyThreshold = 0.;
+    let txtSampleFactor = 0.125;
+    let txtSimplifyThreshold = 0.0;
+    let lerpOffsetBetweenOandA = 1.0;
+    let minDistFromBone = 50;
+    let minBoneVel = 5.0;
+    let boneVelDamp = 0.1;
+    let boneNoiseFreq = 0.01;
+    let originTypeDisplay = false;
 
     //loading time;
     let maxTimeLoadingAnim = 1500;
@@ -104,9 +110,8 @@ const FontGenerator = (p5) => {
             p5.DebugView();
 
             if (isTxtSet) {
-                //todo : put this var into interface
                 //? : qui to compute bezier? How to compute tangent ?
-                p5.computeParticleText(50, 5, .1, 0.01);
+                p5.computeParticleText(minDistFromBone, minBoneVel, boneVelDamp, boneNoiseFreq);
 
                 // p5.noStroke();
                 // p5.fill(255, 0, 0, 20);
@@ -123,28 +128,23 @@ const FontGenerator = (p5) => {
 
                     p5.beginShape();
                     for(let j=0; j<inner.length; j++){
-                        let vert = inner[j];
+                        let vert        = inner[j];
                         let particle    = particles[vert.z];
-                        p5.vertex(particle.position.x, particle.position.y);
+                        let pos         = particle.lerpOrigin(lerpOffsetBetweenOandA);
+                        p5.vertex(pos.x, pos.y);
                     }
                     if(outer.length > 0){
                         p5.beginContour();
                         for(let j=0; j<outer.length; j++){
                             let vert        = outer[j];
                             let particle    = particles[vert.z];
-                            p5.vertex(particle.position.x, particle.position.y);
+                            let pos         = particle.lerpOrigin(lerpOffsetBetweenOandA);
+                            p5.vertex(pos.x, pos.y);
                         }
                         p5.endContour();
                     }
                     p5.endShape(p5.CLOSE);
                 }
-
-                //debugView
-                // p5.fill(255);
-                // for (let i = 0; i < particles.length; i++) {
-                //     let particle = particles[i];
-                //     particle.display();
-                // }
             }
         }
     }
@@ -162,6 +162,10 @@ const FontGenerator = (p5) => {
 
         if (fpsDisplayState) {
             p5.displayFPS();
+        }
+
+        if(originTypeDisplay){
+            p5.displayTypeOrigin();
         }
     }
 
@@ -223,6 +227,14 @@ const FontGenerator = (p5) => {
 
     p5.drawBoneBetweenJoint = (A, B) => {
         p5.line(poses[A].x, poses[A].y, poses[B].x, poses[B].y);
+    }
+
+    p5.displayTypeOrigin = () => {
+        p5.fill(255);
+        for (let i = 0; i < particles.length; i++) {
+            let particle = particles[i];
+            particle.display(4);
+        }
     }
     //#endregion
 
@@ -469,6 +481,30 @@ const FontGenerator = (p5) => {
             isTxtSet = false;
         }
     }
+
+    p5.setLerpOffsetBetweenOandA = (value) => {
+        lerpOffsetBetweenOandA = value/100.0;
+    }
+
+    p5.setMinDistFromBone = (value) =>{
+        minDistFromBone = value;
+    }
+
+    p5.setMinBoneVel = (value) =>{
+        minBoneVel = value;
+    }
+
+    p5.setBoneVelDamp = (value) =>{
+        boneVelDamp = value;
+    }
+
+    p5.setBoneNoiseFreq = (value) =>{
+        boneNoiseFreq = value/1000.0;
+    }
+
+    p5.setOriginTypeDisplay = (state) =>{
+        originTypeDisplay = state;
+    }
     //#endregion
 }
 //#endregion
@@ -477,9 +513,10 @@ const FontGenerator = (p5) => {
 class Particle {
     constructor(p5, x, y) {
         this.p5ctx = p5;
-        this.position = this.p5ctx.createVector(x, y);
-        this.velocity = this.p5ctx.createVector(0, 0);
-        this.acceleration = this.p5ctx.createVector(0, 0);
+        this.position       = this.p5ctx.createVector(x, y);
+        this.origin         = this.position.copy();
+        this.velocity       = this.p5ctx.createVector(0, 0);
+        this.acceleration   = this.p5ctx.createVector(0, 0);
 
         this.maxForce = 0.25;
         this.maxSpeed = 1.0;
@@ -504,8 +541,12 @@ class Particle {
         this.acceleration.mult(0);
     }
 
-    display() {
-        this.p5ctx.ellipse(this.position.x, this.position.y, 2, 2);
+    lerpOrigin(offset){
+        return p5.Vector.lerp(this.origin, this.position, offset);
+    }
+
+    display(value) {
+        this.p5ctx.ellipse(this.position.x, this.position.y, value, value);
     }
 }
 //#endregion

@@ -56,6 +56,7 @@ INPUT.addEventListener('change', function (event) {
         video.autoplay = true;
         video.loop = true;
         video.width = CONTAINER.clientWidth;
+        video.setAttribute("controls","controls") 
         CONTAINER.appendChild(video);
         video.addEventListener('play', computeFrame);
     } else {
@@ -123,6 +124,8 @@ window.onload = function () {
 }
 
 function bindDOMParamToP5Instance() {
+    console.log("Bind data to p5js drawing context")
+
     $("#displayVideoOnCanvas").on('input', function () {
         p5FontGenerator.setDrawSourceState(this.checked);
     })
@@ -142,6 +145,58 @@ function bindDOMParamToP5Instance() {
     $("#TextToGenerate").keyup(function () {
         p5FontGenerator.setTextToDeform($(this).val())
     });
+
+    
+    $("#displayOriginalTextPoint").on('input', function () {
+        p5FontGenerator.setOriginTypeDisplay(this.checked);
+    })
+
+    $("#lerpWithOrigin").on('input', function () {
+        p5FontGenerator.setLerpOffsetBetweenOandA($(this).val());
+    })
+    
+    $("#minDist").on('input', function () {
+        p5FontGenerator.setMinDistFromBone($(this).val());
+    })
+
+    $("#maxVel").on('input', function () {
+        p5FontGenerator.setMinBoneVel($(this).val());
+    })
+
+    $("#velDamp").on('input', function () {
+        p5FontGenerator.setBoneVelDamp($(this).val());
+    })
+
+    $("#noiseFreq").on('input', function () {
+        p5FontGenerator.setBoneNoiseFreq($(this).val());
+    })
+
+    $("#reloadAnimation").on('click', function () {
+        console.log("btn clicked")
+        p5FontGenerator.setTextToDeform($("#TextToGenerate").val());
+    })
+
+    //range bubble
+    $('input[type="range"]').on('input', function() {
+        
+        var control = $(this),
+          controlMin = control.attr('min'),
+          controlMax = control.attr('max'),
+          controlVal = control.val(),
+          controlID  = control.attr('id'),
+          controlThumbWidth = control.data('thumbwidth');
+      
+        var range = controlMax - controlMin;
+        
+        var position = ((controlVal - controlMin) / range) * 100;
+        var positionOffset = Math.round(controlThumbWidth * position / 100) - (controlThumbWidth / 2);
+        var output = $(`[foroutput=${controlID}]`);
+        
+        output
+          .css('left', 'calc(' + position + '% - ' + positionOffset + 'px)')
+          .text(controlVal);
+      
+      });
 }
 //#endregion
 
