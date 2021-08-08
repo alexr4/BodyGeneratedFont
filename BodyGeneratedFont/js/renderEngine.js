@@ -5,6 +5,7 @@ const FontGenerator = (p5) => {
     let videoParams;
     let imageSource;
     let isSourceDrawn = false;
+    let center;
 
     let lastposes = [];
     let poses = [];
@@ -13,7 +14,7 @@ const FontGenerator = (p5) => {
     let gravityPoint;
     let magVelScaleDebug = 2.5;
 
-    let fpsDisplayState = false;
+    let fpsDisplayState = true;
 
     let font;
     let textToDeform;
@@ -24,7 +25,7 @@ const FontGenerator = (p5) => {
     let txtVert = [];
     let particles = [];
     let isTxtSet = false;
-    let txtSampleFactor = 0.125;
+    let txtSampleFactor = .125;
     let txtSimplifyThreshold = 0.0;
     let lerpOffsetBetweenOandA = 1.0;
     let minDistFromBone = 50;
@@ -32,33 +33,47 @@ const FontGenerator = (p5) => {
     let boneVelDamp = 0.1;
     let boneNoiseFreq = 0.01;
     let originTypeDisplay = false;
+    let multFontSize = 1.0;
 
     //loading time;
     let maxTimeLoadingAnim = 1500;
 
     //skeleton description
     let skeletonDescriptionIndices = [
-        //#region head
+        //#region head [0 → 16]
         8, 6, 6, 5, 5, 4, 4, 0,
         0, 1, 1, 2, 2, 3, 3, 7,
         10, 9,
         //#endregion
-        //#region arm left
+        //#region arm left [17 → 29]
         18, 20, 20, 16, 16, 22, 18, 16, 16, 14, 14, 12,
         //#endregion
-        //#region arm right
+        //#region arm right [30 → 42]
         19, 17, 17, 15, 15, 19, 15, 21, 15, 13, 13, 11,
         //#endregion 
-        //#region body
+        //#region body [43 → 51]
         12, 11, 11, 23, 23, 24, 24, 12,
         //#endregion
-        //#region leg left
+        //#region leg left [52 → 62]
         24, 26, 26, 28, 28, 30, 32, 30, 32, 28,
         //#endregion
-        //#region leg right
+        //#region leg right [63 → 73]
         23, 25, 25, 27, 27, 29, 29, 31, 31, 27
         //#endregion
     ];
+
+    let pgsvg;
+    let pgpng;
+    let saving = false;
+    const capturer = new CCapture({
+        framerate: 30,
+        format: "png",
+        name: "movie",
+        quality: 100,
+        verbose: true,
+        autoSaveTime : true
+      });
+      
 
     p5.preload = () => {
         font = p5.loadFont('./fonts/Roboto-Medium.ttf');
@@ -69,6 +84,11 @@ const FontGenerator = (p5) => {
         canvas.class('output-canvas');
 
         gravityPoint = p5.createVector(0, 0);
+
+        //saving ctx
+        pgsvg   = p5.createGraphics(p5.width, p5.height, p5.SVG);
+        pgpng   = p5.createGraphics(p5.width, p5.height);
+        center = p5.createVector(p5.width * 0.5, p5.height * 0.5);
     }
 
     p5.draw = () => {
@@ -112,42 +132,87 @@ const FontGenerator = (p5) => {
             if (isTxtSet) {
                 //? : qui to compute bezier? How to compute tangent ?
                 p5.computeParticleText(minDistFromBone, minBoneVel, boneVelDamp, boneNoiseFreq);
+                p5.drawShapeFont(p5);
+            }
 
-                // p5.noStroke();
-                // p5.fill(255, 0, 0, 20);
-                // for (let i = 0; i < txtPoints.length; i++) {
-                //     let p = txtPoints[i];
-                //     p5.ellipse(p.x - textBBox.w * .5, p.y + textBBox.h * .5, 4, 4);
-                // }
-
-                p5.noStroke();
-                p5.fill(255, 104, 204);
-                for(let i=0; i<txtVert.length; i++){
-                    let inner = txtVert[i].innerPoints;
-                    let outer = txtVert[i].outerPoints;
-
-                    p5.beginShape();
-                    for(let j=0; j<inner.length; j++){
-                        let vert        = inner[j];
-                        let particle    = particles[vert.z];
-                        let pos         = particle.lerpOrigin(lerpOffsetBetweenOandA);
-                        p5.vertex(pos.x, pos.y);
-                    }
-                    if(outer.length > 0){
-                        p5.beginContour();
-                        for(let j=0; j<outer.length; j++){
-                            let vert        = outer[j];
-                            let particle    = particles[vert.z];
-                            let pos         = particle.lerpOrigin(lerpOffsetBetweenOandA);
-                            p5.vertex(pos.x, pos.y);
-                        }
-                        p5.endContour();
-                    }
-                    p5.endShape(p5.CLOSE);
-                }
+            //saving sequence
+            if(saving){
+                console.log("Start Capture");
+                p5.saveAsPNG();
+                capturer.capture(pgpng.canvas);
             }
         }
     }
+
+    p5.drawShapeFont = (drctx) =>{
+        drctx.push();
+        drctx.noStroke();
+        drctx.fill(255, 104, 204);
+        for(let i=0; i<txtVert.length; i++){
+            let inner = txtVert[i].innerPoints;
+            let outer = txtVert[i].outerPoints;
+
+            drctx.beginShape();
+            for(let j=0; j<inner.length; j++){
+                let vert        = inner[j];
+                let particle    = particles[vert.z];
+                let pos         = particle.lerpOrigin(lerpOffsetBetweenOandA);
+                let toCenter    = pos.copy().sub(center);
+                let newPos      = center.copy().add(toCenter.copy().mult(multFontSize));
+                drctx.vertex(newPos.x, newPos.y);
+            }
+            if(outer.length > 0){
+                drctx.beginContour();
+                for(let j=0; j<outer.length-1; j++){
+                    let vert        = outer[j];
+                    let particle    = particles[vert.z];
+                    let pos         = particle.lerpOrigin(lerpOffsetBetweenOandA);
+                    let toCenter    = pos.copy().sub(center);
+                    let newPos      = center.copy().add(toCenter.copy().mult(multFontSize));
+                    drctx.vertex(newPos.x, newPos.y);
+                }
+                drctx.endContour();
+            }
+            drctx.endShape(drctx.CLOSE);
+        }
+        drctx.pop();
+    }
+
+    p5.getParticlePosition = (index, array) =>{
+        let vert        = array[index];
+        let particle    = particles[vert.z];
+        return particle.lerpOrigin(lerpOffsetBetweenOandA);
+    }
+
+    //#region Save/downloader
+    p5.saveAsSVG = () => {
+        pgsvg.background(255);
+        if (isTxtSet) {
+            p5.drawShapeFont(pgsvg);
+        }
+        pgsvg.save("BodyFont_"+Date.now()+".svg");
+    }
+
+    p5.saveAsPNG = () => {
+        pgpng.background(255);
+        if (isTxtSet) {
+            p5.drawShapeFont(pgpng);
+        }
+    }
+
+    p5.setSaving = (state) => {
+        if(state){
+            capturer.name = "BodyFont_"+Date.now();
+            capturer.start();
+        }
+        else{
+            capturer.stop();
+            capturer.save();
+        }
+
+        saving = state;
+    }
+    //#endregion
 
     //#region Debug view
     p5.DebugView = () => {
@@ -233,7 +298,9 @@ const FontGenerator = (p5) => {
         p5.fill(255);
         for (let i = 0; i < particles.length; i++) {
             let particle = particles[i];
-            particle.display(4);
+            let toCenter    = particle.position.copy().sub(center);
+            let newPos      = center.copy().add(toCenter.copy().mult(multFontSize));
+            p5.ellipse(newPos.x, newPos.y, 4, 4);
         }
     }
     //#endregion
@@ -504,6 +571,10 @@ const FontGenerator = (p5) => {
 
     p5.setOriginTypeDisplay = (state) =>{
         originTypeDisplay = state;
+    }
+
+    p5.setFontSizeMultiplier = (val) => {
+        multFontSize = Number(val);
     }
     //#endregion
 }

@@ -4,6 +4,14 @@ body {
     margin: 0;
 }
 
+.active{
+    display: block;
+}
+
+.inactive{
+    display: none;
+}
+
 .output {
     position: absolute;
 }

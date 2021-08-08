@@ -21,6 +21,12 @@
 
     <!--P5JS Load-->
     <script src="https://cdn.jsdelivr.net/npm/p5@1.2.0/lib/p5.min.js"></script>
+    <script src="./js/p5.svg.js"></script>
+    <script src="./js/CCapture.all.min.js"></script>
+    <!-- Include tar.js if you want to export PNG or JPEG -->
+    <script src="./js/tar.js"></script>
+    <!-- Include download.js for easier file download -->
+    <script src="./js/download.js"></script>
 
     <!--MediaPipe Load-->
     <link rel="stylesheet" type="text/css"
@@ -57,6 +63,20 @@
                 </div>
                 <div class="row gy-2 tools">
                     <h5>Paramètre globaux</h5>
+                    <div class="form-range-custom">
+                        <div class="row gy-2">
+                            <div class="col-4">
+                                <input type="range" class="form-range" min="0" max="2" step="1" value="0"
+                                    id="modelComplexity">
+                            </div>
+                            <div class="col">
+                                <output name="rangeVal" foroutput="modelComplexity">1</output>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <label for="modelComplexity" class="form-label">Complexité du model AI (0-1-2) (0 : basse précision/rapide - 2 : plus de précision/moins rapide)</label>
+                        </div>
+                    </div>
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" id="displayVideoOnCanvas">
                         <label class="form-check-label" for="displayVideoOnCanvas">Afficher la vidéo dans le
@@ -83,6 +103,20 @@
                         <input class="form-check-input" type="checkbox" id="displayOriginalTextPoint">
                         <label class="form-check-label" for="displayOriginalTextPoint">Afficher les points du texte
                             (debug)</label>
+                    </div>
+                    <div class="form-range-custom">
+                        <div class="row gy-2">
+                            <div class="col-10">
+                                <input type="range" class="form-range" min="0" max="2" value="1.0" step="0.05"
+                                    id="fontSizeMultiplier">
+                            </div>
+                            <div class="col">
+                                <output name="rangeVal" foroutput="fontSizeMultiplier">1</output>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <label for="fontSizeMultiplier" class="form-label">Réduire/Augmenter la taille de la typo (0 à 1: réduction, 1 à 2: augmentation)</label>
+                        </div>
                     </div>
                     <div class="form-range-custom">
                         <div class="row gy-2">
@@ -162,7 +196,30 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6" id="empty"></div>
+            <div class="col-6" id="empty">
+                <div class="row py-4">
+                    <div class="col-4">
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-range-custom">
+                                    <button type="button" class="btn btn-success" id="DownloadSVG">Télécharger un instant SVG
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-range-custom">
+                                    <button type="button" class="btn btn-success" id="DownloadSequences">Télécharger une séquence image
+                                    </button>
+                                    <button type="button" class="btn btn-secondary inactive" id="StopDownloadSequences">Stop saving sequence
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="col-3 fixed-topright" id="main-debug">
                 <div class="landmark-grid-container"></div>
             </div>

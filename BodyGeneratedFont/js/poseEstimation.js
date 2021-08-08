@@ -23,19 +23,22 @@ var video;
 //#endregion
 
 //#region init BlazePose
-const pose = new Pose({
+var pose = new Pose({
     locateFile: (file) => {
         return `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.4.1624666670/${file}`;
     }
 });
 
-pose.setOptions({
+var options = {
     selfieMode: false,
-    modelComplexity: 2,
+    modelComplexity: 0,
     smoothLandmarks: true,
     minDetectionConfidence: 0.5,
     minTrackingConfidence: 0.5
-})
+};
+
+pose.setOptions(options);
+
 pose.onResults(onResults);
 //#endregion
 
@@ -65,8 +68,6 @@ INPUT.addEventListener('change', function (event) {
         video.load();
     }
 
-    
-    bindDOMParamToP5Instance();
     video.addEventListener('canplay', initVideo);
     video.addEventListener("loadedmetadata", defineAspectRatio)
 });
@@ -92,7 +93,7 @@ async function computeFrame() {
         await pose.send({ image: video });
         window.requestAnimationFrame(computeFrame)
     } catch (error) {
-        // console.error(error);
+        console.error(error);
         // ! This throws an error when we change source due to the async func. 
         //** To avoid stay on thois error we reset pose when we get this error but also to resync the mode; with the new source
         pose.reset();
@@ -123,9 +124,73 @@ window.onload = function () {
     bindDOMParamToP5Instance();
 }
 
+$(document).ready(() => {
+
+    //set default
+     $('input[type="range"]').each(function() {
+        
+        var control = $(this),
+          controlMin = control.attr('min'),
+          controlMax = control.attr('max'),
+          controlVal = control.val(),
+          controlID  = control.attr('id'),
+          controlThumbWidth = control.data('thumbwidth');
+        
+        var range = controlMax - controlMin;
+        
+        var position = ((controlVal - controlMin) / range) * 100;
+        var positionOffset = Math.round(controlThumbWidth * position / 100) - (controlThumbWidth / 2);
+        var output = $(`[foroutput=${controlID}]`);
+        
+        output
+          .css('left', 'calc(' + position + '% - ' + positionOffset + 'px)')
+          .text(controlVal);
+      
+      });
+
+    // p5FontGenerator.setTextToDeform($("#TextToGenerate").val())
+    p5FontGenerator.setDrawSourceState($("#displayVideoOnCanvas").prop("checked"));
+    p5FontGenerator.setDrawBonesState($("#displayBonesOnCanvas").prop("checked"));
+    p5FontGenerator.setBonesCenteredState($("#CenterBonesOnCanvas").prop("checked"));
+    p5FontGenerator.setFPSDisplayState($("#ShowFPS").prop("checked"));
+    p5FontGenerator.setOriginTypeDisplay($("#displayOriginalTextPoint").prop("checked"));
+    p5FontGenerator.setLerpOffsetBetweenOandA($("#lerpWithOrigin").val());
+    p5FontGenerator.setMinDistFromBone($("#minDist").val());
+    p5FontGenerator.setMinBoneVel($("#maxVel").val());
+    p5FontGenerator.setBoneVelDamp($("#velDamp").val());
+    p5FontGenerator.setBoneNoiseFreq($("#noiseFreq").val()); 
+    p5FontGenerator.setFontSizeMultiplier($("#fontSizeMultiplier").val()); 
+})
+
+
+
 function bindDOMParamToP5Instance() {
     console.log("Bind data to p5js drawing context")
 
+    //#region  Text to generate
+    $("#TextToGenerate").keyup(function () {
+        p5FontGenerator.setTextToDeform($(this).val())
+    });
+
+    $("#modelComplexity").on('input', function () {
+        try{
+            if(p5FontGenerator.ready){
+                p5FontGenerator.setReady(false);
+            }
+            if(p5FontGenerator.loading){
+                p5FontGenerator.setLoading(true);
+            }
+            options.modelComplexity = Number($(this).val());
+            pose.setOptions(options);
+            pose.reset();
+        }catch(err){
+            console.error('bindDOMParamToP5Instance ', err)
+        }
+        
+    })
+    //#endregion
+
+    //#region Global Blaze Params
     $("#displayVideoOnCanvas").on('input', function () {
         p5FontGenerator.setDrawSourceState(this.checked);
     })
@@ -141,12 +206,9 @@ function bindDOMParamToP5Instance() {
     $("#ShowFPS").on('input', function () {
         p5FontGenerator.setFPSDisplayState(this.checked);
     })
+    //#endregion
 
-    $("#TextToGenerate").keyup(function () {
-        p5FontGenerator.setTextToDeform($(this).val())
-    });
-
-    
+    //#region Type parameters
     $("#displayOriginalTextPoint").on('input', function () {
         p5FontGenerator.setOriginTypeDisplay(this.checked);
     })
@@ -171,10 +233,44 @@ function bindDOMParamToP5Instance() {
         p5FontGenerator.setBoneNoiseFreq($(this).val());
     })
 
+    $("#fontSizeMultiplier").on('input', function () {
+        p5FontGenerator.setFontSizeMultiplier($(this).val());
+    })
+
     $("#reloadAnimation").on('click', function () {
-        console.log("btn clicked")
+        console.log("reloadAnimation clicked")
         p5FontGenerator.setTextToDeform($("#TextToGenerate").val());
     })
+    //#endregion
+
+    //#region downloader
+    $("#DownloadSVG").on('click', function () {
+        p5FontGenerator.saveAsSVG();
+        console.log(`DownloadSVG clicked`);
+    })
+
+    $("#DownloadSequences").on('click', function () {
+        console.log(`DownloadSequences clicked`)
+
+        $(this).removeClass("active");
+        $(this).addClass("inactive");
+        $("#StopDownloadSequences").removeClass("inactive");
+        $("#StopDownloadSequences").addClass("active");
+
+        // p5FontGenerator.setSaving(true);
+    })
+    
+    $("#StopDownloadSequences").on('click', function () {
+        console.log(`StopDownloadSequences clicked`)
+        
+        $(this).removeClass("active");
+        $(this).addClass("inactive");
+        $("#DownloadSequences").removeClass("inactive");
+        $("#DownloadSequences").addClass("active");
+
+        // p5FontGenerator.setSaving(false);
+    })
+    //#endregion
 
     //range bubble
     $('input[type="range"]').on('input', function() {
@@ -185,7 +281,7 @@ function bindDOMParamToP5Instance() {
           controlVal = control.val(),
           controlID  = control.attr('id'),
           controlThumbWidth = control.data('thumbwidth');
-      
+        
         var range = controlMax - controlMin;
         
         var position = ((controlVal - controlMin) / range) * 100;
