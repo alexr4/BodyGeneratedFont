@@ -257,7 +257,7 @@ function bindDOMParamToP5Instance() {
         $("#StopDownloadSequences").removeClass("inactive");
         $("#StopDownloadSequences").addClass("active");
 
-        // p5FontGenerator.setSaving(true);
+        p5FontGenerator.setSaving(true);
     })
     
     $("#StopDownloadSequences").on('click', function () {
@@ -268,7 +268,7 @@ function bindDOMParamToP5Instance() {
         $("#DownloadSequences").removeClass("inactive");
         $("#DownloadSequences").addClass("active");
 
-        // p5FontGenerator.setSaving(false);
+        p5FontGenerator.setSaving(false);
     })
     //#endregion
 
