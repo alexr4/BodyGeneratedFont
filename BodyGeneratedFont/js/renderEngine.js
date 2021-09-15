@@ -76,7 +76,8 @@ const FontGenerator = (p5) => {
       
 
     p5.preload = () => {
-        font = p5.loadFont('./fonts/Roboto-Medium.ttf');
+        // font = p5.loadFont('./fonts/Roboto-Medium.ttf');
+        font = p5.loadFont('./fonts/BNMLunch-Medium.ttf');
     }
 
     p5.setup = () => {
@@ -151,16 +152,25 @@ const FontGenerator = (p5) => {
         for(let i=0; i<txtVert.length; i++){
             let inner = txtVert[i].innerPoints;
             let outer = txtVert[i].outerPoints;
+            
+            let last;
 
             drctx.beginShape();
+            drctx.fill(255, 104, 204);
             for(let j=0; j<inner.length; j++){
                 let vert        = inner[j];
                 let particle    = particles[vert.z];
                 let pos         = particle.lerpOrigin(lerpOffsetBetweenOandA);
                 let toCenter    = pos.copy().sub(center);
                 let newPos      = center.copy().add(toCenter.copy().mult(multFontSize));
-                drctx.vertex(newPos.x, newPos.y);
+
+                if(j == 0 || j == inner.length-1) drctx.curveVertex(newPos.x, newPos.y);
+
+                if(j == inner.length - 1) last = newPos;
+
+                drctx.curveVertex(newPos.x, newPos.y);
             }
+            
             if(outer.length > 0){
                 drctx.beginContour();
                 for(let j=0; j<outer.length-1; j++){
@@ -169,7 +179,10 @@ const FontGenerator = (p5) => {
                     let pos         = particle.lerpOrigin(lerpOffsetBetweenOandA);
                     let toCenter    = pos.copy().sub(center);
                     let newPos      = center.copy().add(toCenter.copy().mult(multFontSize));
-                    drctx.vertex(newPos.x, newPos.y);
+
+                    if(j == 0 || j == inner.length-1) drctx.curveVertex(newPos.x, newPos.y);
+
+                    drctx.curveVertex(newPos.x, newPos.y);
                 }
                 drctx.endContour();
             }
