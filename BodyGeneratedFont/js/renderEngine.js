@@ -156,7 +156,7 @@ const FontGenerator = (p5) => {
             let last;
 
             drctx.beginShape();
-            drctx.fill(255, 104, 204);
+            drctx.fill('#000064');
             for(let j=0; j<inner.length; j++){
                 let vert        = inner[j];
                 let particle    = particles[vert.z];
