@@ -148,7 +148,7 @@ const FontGenerator = (p5) => {
     p5.drawShapeFont = (drctx) =>{
         drctx.push();
         drctx.noStroke();
-        drctx.fill(255, 104, 204);
+        drctx.fill('#000064');
         for(let i=0; i<txtVert.length; i++){
             let inner = txtVert[i].innerPoints;
             let outer = txtVert[i].outerPoints;
